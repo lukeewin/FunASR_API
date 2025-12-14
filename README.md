@@ -1,3 +1,8 @@
+# 0. 效果演示
+转写请求接口: 
+<img src=./img/trans.png width="80%"/>
+获取结果接口：
+<img src=./img/result.png width="80%"/>
 # 1. 项目背景说明
 这个项目基于阿里开源的 FunASR 进行开发，使用 fastapi 开发成 API 接口，数据存储到 MySQL 中。
 该项目可以运行于 Linux，MacOS 和 Windows 系统中，在对应系统中安装 Python 环境即可运行。
@@ -97,3 +102,10 @@ python app.py
 1. 基于 Celery + Redis 开发的分布式私有化语音识别接口，可联系作者 lukeewin01 进行项目演示。该项目支持多机多卡部署，适合中大型公司使用，可分布式部署在多台服务器中，使用多张显卡。目前该项目不开源。[点击这里查看文章](https://blog.lukeewin.top/archives/celeryredisasrspk)。
 2. 基于 Java 开发的一句话实时语音识别接口，在阿里云高性能计算性服务器中转写 10 秒一句话音频耗时 100 毫秒左右。该项目不需要 GPU，运行在纯 CPU 环境中，使用 onnxruntime 推理模型。（非开源项目）
 3. 基于 Java 开发的长音频转写接口，在阿里云高性能计算性服务器中转写 1 分钟音频耗时 1.1 秒。该项目也不需要显卡，运行在纯 CPU 环境中，使用 onnxruntime 推理模型。（非开源项目）
+# 7. 模型下载
+```shell
+modelscope download --model iic/speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch
+modelscope download --model iic/speech_fsmn_vad_zh-cn-16k-common-pytorch
+modelscope download --model iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch
+modelscope download --model iic/speech_campplus_sv_zh-cn_16k-common
+```
