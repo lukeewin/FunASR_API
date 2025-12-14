@@ -1,3 +1,8 @@
+# !/usr/bin/env python
+# _*_ coding utf-8 _*_
+# @Time: 2025/12/15 1:01
+# @Author: Luke Ewin
+# @Blog: https://blog.lukeewin.top
 import subprocess
 import threading
 import uuid

@@ -1,3 +1,8 @@
+# !/usr/bin/env python
+# _*_ coding utf-8 _*_
+# @Time: 2025/12/15 1:15
+# @Author: Luke Ewin
+# @Blog: https://blog.lukeewin.top
 import os
 import threading
 import pymysql
