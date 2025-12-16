@@ -1,8 +1,10 @@
 # 0. 效果演示
 转写请求接口: 
-<img src=./img/trans.png width="80%"/>
+<img src=./img/trans.png width="80%"/> \
 获取结果接口：
-<img src=./img/result.png width="80%"/>
+<img src=./img/result.png width="80%"/> \
+视频讲解:
+<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=115719857510386&bvid=BV1dum6BsESc&cid=34742600655&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
 # 1. 项目背景说明
 这个项目基于阿里开源的 FunASR 进行开发，使用 fastapi 开发成 API 接口，数据存储到 MySQL 中。
 该项目可以运行于 Linux，MacOS 和 Windows 系统中，在对应系统中安装 Python 环境即可运行。
@@ -80,7 +82,8 @@ conda activate funasr
 ```shell
 pip install -U funasr modelscope python-dotenv fastapi uvicorn PyMySQL DBUtils
 ```
-# 4. 运行项目
+# 4. 运行和使用
+## 4.1 运行
 运行之前需要在项目目录中创建 .env 文件，写入下面配置信息。
 ```markdown
 DB_HOST=127.0.0.1
@@ -94,6 +97,238 @@ DB_NAME=funasr_api
 python app.py
 ```
 默认使用的是 9090 端口。
+## 4.2 使用
+转写接口 /asr
+```markdown
+发送POST请求，form-data形式，传入参数file，类型File
+```
+/asr 接口响应如下：
+```json
+{
+    "text": "现在我来录制十秒钟的音频来测试一下一句话识别，看看识别的速度怎么样。",
+    "segments": [
+        {
+            "text": "现在我来录制十秒钟的音频来测试一下一句话识别，",
+            "start": "00:00:00.780",
+            "end": "00:00:07.400",
+            "speaker": 0
+        },
+        {
+            "text": "看看识别的速度怎么样。",
+            "start": "00:00:07.620",
+            "end": "00:00:10.015",
+            "speaker": 0
+        }
+    ],
+    "language": "zh"
+}
+```
+转写接口 /trans/file
+```markdown
+发送POST请求，form-data形式，传入参数file，类型File
+```
+/trans/file 接口响应如下：
+```json
+{
+    "code": 200,
+    "status": "ok",
+    "message": "success",
+    "data": {
+        "sentences": [
+            {
+                "text": "现在我来录制十秒钟的音频来测试一下一句话识别，",
+                "start": "00:00:00.780",
+                "endTime": "00:00:07.400",
+                "speaker": 0
+            },
+            {
+                "text": "看看识别的速度怎么样。",
+                "start": "00:00:07.620",
+                "endTime": "00:00:10.015",
+                "speaker": 0
+            }
+        ]
+    }
+}
+```
+转写接口 /trans/audio_url
+```markdown
+发送POST请求，form-data形式，传入参数audio_url，类型String
+```
+/trans/audio_url 响应如下：
+```json
+{
+    "code": 200,
+    "status": "success",
+    "message": "上传成功",
+    "data": {
+        "task_id": "75681bf99f144616979e062fb3480067"
+    }
+}
+```
+获取转写结果接口 /result
+```markdown
+发送POST请求，form-data形式，字段task_id，类型String
+```
+响应如下：
+```json
+{
+    "code": 200,
+    "status": "success",
+    "message": "获取结果成功",
+    "data": {
+        "sentences": [
+            {
+                "sentence_index": 1,
+                "text": "嗯，",
+                "start": "00:00:00.370",
+                "end": "00:00:00.610",
+                "spk": 0
+            },
+            {
+                "sentence_index": 2,
+                "text": "那么今天我们就简单的进行一下那个新生招聘的嗯讨论吧。",
+                "start": "00:00:00.630",
+                "end": "00:00:06.890",
+                "spk": 0
+            },
+            {
+                "sentence_index": 3,
+                "text": "因为现在不是好像就新生到校嘛，",
+                "start": "00:00:06.910",
+                "end": "00:00:10.050",
+                "spk": 0
+            },
+            {
+                "sentence_index": 4,
+                "text": "然后我们社团呢也需要招聘一些新的社员，",
+                "start": "00:00:10.350",
+                "end": "00:00:13.450",
+                "spk": 0
+            },
+            {
+                "sentence_index": 5,
+                "text": "然后就今天就大概就讨论一下嗯怎么招聘的内容吧。",
+                "start": "00:00:13.950",
+                "end": "00:00:18.890",
+                "spk": 0
+            },
+            {
+                "sentence_index": 6,
+                "text": "嗯，",
+                "start": "00:00:19.250",
+                "end": "00:00:19.490",
+                "spk": 0
+            },
+            {
+                "sentence_index": 7,
+                "text": "我们就首先想一下那个招聘的地点在哪里吧？",
+                "start": "00:00:19.570",
+                "end": "00:00:23.505",
+                "spk": 0
+            },
+            {
+                "sentence_index": 8,
+                "text": "嗯，",
+                "start": "00:00:24.370",
+                "end": "00:00:24.590",
+                "spk": 1
+            },
+            {
+                "sentence_index": 9,
+                "text": "地点的话，",
+                "start": "00:00:24.590",
+                "end": "00:00:25.230",
+                "spk": 1
+            },
+            {
+                "sentence_index": 10,
+                "text": "我们现在可以有三个选择。",
+                "start": "00:00:25.230",
+                "end": "00:00:27.190",
+                "spk": 1
+            },
+            {
+                "sentence_index": 11,
+                "text": "嗯，",
+                "start": "00:00:27.610",
+                "end": "00:00:27.850",
+                "spk": 1
+            },
+            {
+                "sentence_index": 12,
+                "text": "第一个的话，",
+                "start": "00:00:27.910",
+                "end": "00:00:28.550",
+                "spk": 1
+            },
+            {
+                "sentence_index": 13,
+                "text": "我们可以选择在操场，",
+                "start": "00:00:28.550",
+                "end": "00:00:30.810",
+                "spk": 1
+            },
+            {
+                "sentence_index": 14,
+                "text": "因为那儿嗯学生流动量也挺大的，",
+                "start": "00:00:30.970",
+                "end": "00:00:34.720",
+                "spk": 1
+            },
+            {
+                "sentence_index": 15,
+                "text": "操场的话，",
+                "start": "00:00:34.920",
+                "end": "00:00:35.800",
+                "spk": 0
+            },
+            {
+                "sentence_index": 16,
+                "text": "这这段时间太热了，",
+                "start": "00:00:36.340",
+                "end": "00:00:38.220",
+                "spk": 0
+            },
+            {
+                "sentence_index": 17,
+                "text": "我怕那个人流量有点少。",
+                "start": "00:00:38.220",
+                "end": "00:00:40.579",
+                "spk": 0
+            },
+            {
+                "sentence_index": 18,
+                "text": "嗯，",
+                "start": "00:00:41.060",
+                "end": "00:00:41.300",
+                "spk": 1
+            },
+            {
+                "sentence_index": 19,
+                "text": "那我们还可以有第二个选择呀，",
+                "start": "00:00:41.380",
+                "end": "00:00:43.280",
+                "spk": 1
+            },
+            {
+                "sentence_index": 20,
+                "text": "嗯我们可以在图书馆楼下那里有一块可以遮阴的地方哦，",
+                "start": "00:00:43.640",
+                "end": "00:00:49.080",
+                "spk": 1
+            },
+            {
+                "sentence_index": 21,
+                "text": "图书馆我觉得应该还可以吧。",
+                "start": "00:00:49.220",
+                "end": "00:00:51.485",
+                "spk": 0
+            }
+        ]
+    }
+}
+```
 # 5. 联系
 这个项目已经开源，有一定编程能力的人可以自行修改源码，如果不会如何部署的朋友，可以让作者有偿给你部署，[可点击这里](https://lukeewin.taobao.com)。
 如果觉得这个项目不错，记得在右上角点击"Star"。
