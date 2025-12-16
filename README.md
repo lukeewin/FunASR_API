@@ -3,8 +3,7 @@
 <img src=./img/trans.png width="80%"/> \
 获取结果接口：
 <img src=./img/result.png width="80%"/> \
-视频讲解:
-<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=115719857510386&bvid=BV1dum6BsESc&cid=34742600655&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+[点击观看视频讲解](https://www.bilibili.com/video/BV1dum6BsESc)
 # 1. 项目背景说明
 这个项目基于阿里开源的 FunASR 进行开发，使用 fastapi 开发成 API 接口，数据存储到 MySQL 中。
 该项目可以运行于 Linux，MacOS 和 Windows 系统中，在对应系统中安装 Python 环境即可运行。
