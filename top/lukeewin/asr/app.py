@@ -105,13 +105,14 @@ async def trans(file: UploadFile = File(..., description="音频文件")):
                 spk = sentence['spk']
                 sentence_list.append({"text": text, "start": start, "endTime": end, "speaker": spk})
 
-            return response_format(code=200, status="ok", message="success", data=sentence_list)
+            return response_format(code=200, status="ok", message="success", data={"sentences": sentence_list})
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"识别失败: {str(e)}") 
         finally:
             if temp_file and os.path.exists(temp_file):
                 os.unlink(temp_file)
     except Exception as e:
+        print(f"转写异常: {e}")
         return response_format(code=300, status="error", message="转写异常", data={})
 
 @app.post("/trans/audio_url")
