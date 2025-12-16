@@ -8,6 +8,8 @@ import threading
 import uuid
 from datetime import timedelta, datetime
 from queue import Queue
+from typing import Optional
+
 import requests
 import torch.cuda
 from dotenv import load_dotenv
@@ -79,6 +81,12 @@ def response_format(code: int, status: str, message: str, data: dict = None):
         "data": data or {}
     }
 
+def whisper_asr_webservice_response_format(text: str, segments: list, language: str):
+    return {
+        "text": text,
+        "segments": segments,
+        "language": language
+    }
 
 @app.post("/trans/file")
 async def trans(file: UploadFile = File(..., description="音频文件")):
@@ -114,6 +122,67 @@ async def trans(file: UploadFile = File(..., description="音频文件")):
     except Exception as e:
         print(f"转写异常: {e}")
         return response_format(code=300, status="error", message="转写异常", data={})
+
+"""
+按照 https://ahmetoner.com/whisper-asr-webservice/endpoints 接口规范接口
+为兼容 OpenAI API，需把 audio_file 修改为 file
+"""
+@app.post("/asr")
+async def trans_file(file: UploadFile = File(...),
+                     output: str = "text",
+                     task: str = "transcribe",
+                     language: str = "zh",
+                     word_timestamps: bool = False,
+                     vad_filter: bool = False,
+                     encode: bool = False,
+                     diarize: bool = False,
+                     min_speakers: Optional[str] = None,
+                     max_speakers: Optional[str] = None):
+    task_id = str(uuid.uuid4()).replace("-", "")
+    tmp_audio = None
+    audio = None
+    try:
+        filename = file.filename
+        file_extension = os.path.splitext(filename)[1].lower()
+        contents = await file.read()
+        save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "upload")
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        tmp_audio = os.path.join(save_path, task_id + file_extension)
+        with open(tmp_audio, "wb") as f:
+            f.write(contents)
+            f.flush()
+        audio = os.path.join(save_path, task_id + "_converted" + file_extension)
+        convert_audio_to_wav(input_path=tmp_audio, output_path=audio)
+        if os.path.exists(audio) and os.path.isfile(audio):
+            model = get_model()
+            result = model.generate(
+                input=audio,
+                batch_size_s=300
+            )
+            if result:
+                text_all = result[0]['text']
+                if len(text_all) > 0:
+                    sentence_info = result[0]["sentence_info"]
+                    sentence_list = []
+                    for sentence in sentence_info:
+                        start = to_date(sentence['start'])
+                        end = to_date(sentence['end'])
+                        text = sentence['text']
+                        spk = sentence['spk']
+                        sentence_list.append({"text": text, "start": start, "end": end, "speaker": spk})
+                    return whisper_asr_webservice_response_format(text=text_all, segments=sentence_list, language="zh")
+                else:
+                    print(f"{task_id} - 转写结果为空")
+        else:
+            print(f"{task_id} - 音频不存在")
+    except Exception as e:
+        print(f"{task_id} - 转写异常：{e}")
+    finally:
+        if os.path.exists(tmp_audio):
+            os.unlink(tmp_audio)
+        if os.path.exists(audio):
+            os.unlink(audio)
 
 @app.post("/trans/audio_url")
 async def trans_audio_url(audio_url: str = Form(..., description="音频URL")):
