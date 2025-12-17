@@ -79,7 +79,7 @@ conda activate funasr
 ```
 安装依赖
 ```shell
-pip install -U funasr modelscope python-dotenv fastapi uvicorn PyMySQL DBUtils
+pip install -U funasr modelscope python-dotenv fastapi uvicorn PyMySQL DBUtils python-multipart
 ```
 # 4. 运行和使用
 ## 4.1 运行
