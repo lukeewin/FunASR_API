@@ -106,13 +106,14 @@ async def trans(file: UploadFile = File(..., description="音频文件")):
             )
             sentence_info = result[0]["sentence_info"]
             sentence_list = []
+            i = 1
             for sentence in sentence_info:
                 start = to_date(sentence['start'])
                 end = to_date(sentence['end'])
                 text = sentence['text']
                 spk = sentence['spk']
-                sentence_list.append({"text": text, "start": start, "endTime": end, "speaker": spk})
-
+                sentence_list.append({"sentence_index": i, "text": text, "start": start, "endTime": end, "speaker": spk})
+                i += 1
             return response_format(code=200, status="ok", message="success", data={"sentences": sentence_list})
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"识别失败: {str(e)}") 
@@ -165,12 +166,14 @@ async def trans_file(file: UploadFile = File(...),
                 if len(text_all) > 0:
                     sentence_info = result[0]["sentence_info"]
                     sentence_list = []
+                    i = 1
                     for sentence in sentence_info:
                         start = to_date(sentence['start'])
                         end = to_date(sentence['end'])
                         text = sentence['text']
                         spk = sentence['spk']
-                        sentence_list.append({"text": text, "start": start, "end": end, "speaker": spk})
+                        sentence_list.append({"sentence_index": i, "text": text, "start": start, "end": end, "speaker": spk})
+                        i += 1
                     return whisper_asr_webservice_response_format(text=text_all, segments=sentence_list, language="zh")
                 else:
                     print(f"{task_id} - 转写结果为空")
