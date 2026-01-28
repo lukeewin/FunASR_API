@@ -10,6 +10,7 @@ from datetime import timedelta, datetime
 from queue import Queue
 from typing import Optional
 
+import ffmpeg
 import requests
 import torch.cuda
 from dotenv import load_dotenv
@@ -88,6 +89,17 @@ def whisper_asr_webservice_response_format(text: str, segments: list, language: 
         "language": language
     }
 
+def video_to_audio(video_path: str, audio_path: str):
+    try:
+        stream = ffmpeg.input(video_path)
+        audio = stream.audio
+        ffmpeg.output(audio, audio_path).run(overwrite_output=True)
+        print(f"音频已提取到: {audio_path}")
+    except ffmpeg.Error as e:
+        print(f"FFmpeg错误: {e.stderr.decode()}")
+    except Exception as e:
+        print(f"错误: {e}")
+
 @app.post("/trans/file")
 async def trans(file: UploadFile = File(..., description="音频文件")):
     try:
@@ -130,17 +142,9 @@ async def trans(file: UploadFile = File(..., description="音频文件")):
 """
 @app.post("/asr")
 async def trans_file(file: UploadFile = File(...),
-                     output: str = "text",
-                     task: str = "transcribe",
-                     language: str = "zh",
-                     word_timestamps: bool = False,
-                     vad_filter: bool = False,
-                     encode: bool = False,
-                     diarize: bool = False,
-                     min_speakers: Optional[str] = None,
-                     max_speakers: Optional[str] = None):
+                     file_type: str = Form(default="audio", description="文件是音频和视频")):
     task_id = str(uuid.uuid4()).replace("-", "")
-    tmp_audio = None
+    tmp_file = None
     audio = None
     try:
         filename = file.filename
@@ -149,12 +153,21 @@ async def trans_file(file: UploadFile = File(...),
         save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "upload")
         if not os.path.exists(save_path):
             os.makedirs(save_path)
-        tmp_audio = os.path.join(save_path, task_id + file_extension)
-        with open(tmp_audio, "wb") as f:
+        tmp_file = os.path.join(save_path, task_id + file_extension)
+        with open(tmp_file, "wb") as f:
             f.write(contents)
             f.flush()
+
+        tmp_audio = None
+        if file_type == "video":
+            tmp_audio = os.path.join(save_path, task_id + ".wav")
+            video_to_audio(video_path=tmp_file, audio_path=tmp_audio)
+
+        if tmp_audio is not None:
+            tmp_file = tmp_audio
+
         audio = os.path.join(save_path, task_id + "_converted" + file_extension)
-        convert_audio_to_wav(input_path=tmp_audio, output_path=audio)
+        convert_audio_to_wav(input_path=tmp_file, output_path=audio)
         if os.path.exists(audio) and os.path.isfile(audio):
             model = get_model()
             result = model.generate(
@@ -182,8 +195,8 @@ async def trans_file(file: UploadFile = File(...),
     except Exception as e:
         print(f"{task_id} - 转写异常：{e}")
     finally:
-        if os.path.exists(tmp_audio):
-            os.unlink(tmp_audio)
+        if os.path.exists(tmp_file):
+            os.unlink(tmp_file)
         if os.path.exists(audio):
             os.unlink(audio)
 
