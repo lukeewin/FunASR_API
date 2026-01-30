@@ -93,7 +93,14 @@ def video_to_audio(video_path: str, audio_path: str):
     try:
         stream = ffmpeg.input(video_path)
         audio = stream.audio
-        ffmpeg.output(audio, audio_path).run(overwrite_output=True)
+        ffmpeg.output(
+            audio,
+            audio_path,
+            ac=1,
+            ar=16000,
+            acodec='pcm_s16le',
+            f='wav'
+        ).run(overwrite_output=True)
         print(f"音频已提取到: {audio_path}")
     except ffmpeg.Error as e:
         print(f"FFmpeg错误: {e.stderr.decode()}")
@@ -200,7 +207,7 @@ async def trans_file(file: UploadFile = File(...),
         if os.path.exists(audio):
             os.unlink(audio)
 
-@app.post("/trans/audio_url")
+@app.post("/trans/asr")
 async def trans_audio_url(audio_url: str = Form(..., description="音频URL")):
     task_id = str(uuid.uuid4()).replace("-", "")
     try:
@@ -213,7 +220,7 @@ async def trans_audio_url(audio_url: str = Form(..., description="音频URL")):
         print(f"转写异常：{e}")
         return response_format(code=301, status="error", message="转写异常", data={"task_id": task_id})
 
-@app.post("/result")
+@app.post("/trans/result")
 async def result(task_id: str = Form(..., description="任务ID")):
     try:
         sql = "SELECT sentence_index, text, start, end, spk FROM asr_result WHERE task_id = %s ORDER BY sentence_index"
@@ -277,8 +284,8 @@ def task():
         parsed_url = urlparse(audio)
         filename = os.path.basename(parsed_url.path)
         file_extension = os.path.splitext(filename)[1].lower()
-        temp_audio_path = os.path.join(save_path, "_" + task_id + file_extension)
-        with open(temp_audio_path, 'wb') as f:
+        temp_file = os.path.join(save_path, "_" + task_id + file_extension)
+        with open(temp_file, 'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
                     f.write(chunk)
@@ -287,13 +294,18 @@ def task():
         print(f"{task_id} - 转码中")
         wav_audio_path = os.path.join(save_path, task_id + ".wav")
         try:
-            convert_audio_to_wav(temp_audio_path, wav_audio_path)
-            if os.path.exists(temp_audio_path):
-                os.unlink(temp_audio_path)
+            if file_extension in ['.mp3', '.wav', '.m4a']:
+                convert_audio_to_wav(temp_file, wav_audio_path)
+            elif file_extension in ['.mp4']:
+                video_to_audio(video_path=temp_file, audio_path=wav_audio_path)
+            else:
+                print(f"{task_id} - 格式不支持")
+            if os.path.exists(temp_file):
+                os.unlink(temp_file)
             print(f"{task_id} - 转码完成")
         except Exception as e:
             print(f"{task_id} - 转码失败: {e}")
-            wav_audio_path = temp_audio_path
+            wav_audio_path = temp_file
         print(f"{task_id} - 转写中")
         trans_result = model.generate(input=wav_audio_path, batch_size_s=300)
         print(f"{task_id} - 转写完成")
