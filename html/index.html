@@ -700,8 +700,9 @@
 
             if (result.code === 200) {
                 // 直接显示结果，不需要任务ID
+                all_content = result.data.all_content;
                 currentTranscriptionResult = result.data.sentences;
-                displayTranscriptionResult(currentTranscriptionResult);
+                displayTranscriptionResult(all_content, currentTranscriptionResult);
                 downloadBtn.disabled = false;
                 taskIdSection.style.display = 'none';
                 return {code: 200, data: {task_id: 'direct_result'}};
@@ -764,11 +765,12 @@
 
                 if (result.code === 200) {
                     // 转写完成
+                    all_content = result.data.all_content;
                     currentTranscriptionResult = result.data.sentences;
                     updateStatus('success', '转写完成');
 
                     // 显示结果
-                    displayTranscriptionResult(currentTranscriptionResult);
+                    displayTranscriptionResult(all_content, currentTranscriptionResult);
 
                     // 启用下载按钮
                     downloadBtn.disabled = false;
@@ -798,7 +800,7 @@
         }
 
         // 显示转写结果
-        function displayTranscriptionResult(sentences) {
+        function displayTranscriptionResult(all_content, sentences) {
             if (!sentences || sentences.length === 0) {
                 resultBody.innerHTML = `
                     <tr>
@@ -814,6 +816,9 @@
                 // 适配不同的字段名：endTime 或 end
                 const endTime = sentence.endTime || sentence.end;
                 html += `
+                    <tr>
+                        <td class="sentence-text">${all_content}</td>
+                    </tr>
                     <tr>
                         <td class="sentence-index">${sentence.sentence_index}</td>
                         <td class="sentence-text">${sentence.text}</td>

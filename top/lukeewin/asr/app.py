@@ -8,8 +8,6 @@ import threading
 import uuid
 from datetime import timedelta, datetime
 from queue import Queue
-from typing import Optional
-
 import ffmpeg
 import requests
 import torch.cuda
@@ -31,6 +29,8 @@ task_queue = Queue()
 load_dotenv()
 
 db_manager = SQLHelper()
+
+all_content_cache = {}
 
 home_directory = os.path.expanduser("~")
 asr_model = os.path.join(home_directory, ".cache", "modelscope", "hub", "iic", "speech_seaco_paraformer_large_asr_nat-zh-cn-16k-common-vocab8404-pytorch")
@@ -123,6 +123,7 @@ async def trans(file: UploadFile = File(..., description="音频文件")):
                 input=temp_file,
                 batch_size_s=300
             )
+            all_content = result[0]['text']
             sentence_info = result[0]["sentence_info"]
             sentence_list = []
             i = 1
@@ -133,7 +134,7 @@ async def trans(file: UploadFile = File(..., description="音频文件")):
                 spk = sentence['spk']
                 sentence_list.append({"sentence_index": i, "text": text, "start": start, "endTime": end, "spk": spk})
                 i += 1
-            return response_format(code=200, status="ok", message="success", data={"sentences": sentence_list})
+            return response_format(code=200, status="ok", message="success", data={"all_content": all_content, "sentences": sentence_list})
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"识别失败: {str(e)}") 
         finally:
@@ -228,7 +229,9 @@ async def result(task_id: str = Form(..., description="任务ID")):
         if results:
             delete_sql = "DELETE FROM asr_result WHERE task_id = %s"
             db_manager.modify(delete_sql, (task_id,))
-            return response_format(code=200, status="success", message="获取结果成功", data={"sentences": results})
+            # 从缓存中根据 task_id 获取 all_content
+            all_content = all_content_cache.pop(task_id, "None")
+            return response_format(code=200, status="success", message="获取结果成功", data={"all_content": all_content, "sentences": results})
         else:
             return response_format(code=303, status="error", message="获取结果为空")
     except Exception as e:
@@ -312,6 +315,9 @@ def task():
         os.unlink(wav_audio_path)
         createtime = datetime.now()
         if trans_result:
+            all_content = trans_result[0]['text']
+            # 存储到缓存中，不存入数据库
+            all_content_cache[task_id] = all_content
             sentence_info = trans_result[0]["sentence_info"]
             i = 1
             for sentence in sentence_info:
