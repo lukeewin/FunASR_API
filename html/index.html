@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音频/视频转写工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        main {
+            padding: 30px;
+        }
+
+        .upload-section {
+            background-color: #f8f9ff;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px dashed #d1d9ff;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .media-type-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .media-type-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e1e5f1;
+            border-radius: 8px;
+            background-color: white;
+            cursor: pointer;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #555;
+            transition: all 0.3s ease;
+        }
+
+        .media-type-btn:hover {
+            border-color: #6a11cb;
+            transform: translateY(-2px);
+        }
+
+        .media-type-btn.active {
+            border-color: #6a11cb;
+            background-color: #f0f3ff;
+            color: #6a11cb;
+        }
+
+        .upload-options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .upload-option {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .option-title {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #444;
+            font-weight: 600;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #b8c1ec;
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .file-upload-area:hover {
+            border-color: #6a11cb;
+            background-color: #f9faff;
+        }
+
+        .file-info {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5f1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .url-input:focus {
+            border-color: #6a11cb;
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.2);
+            min-width: 180px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(106, 17, 203, 0.3);
+        }
+
+        .action-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .action-btn.secondary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .action-btn.download {
+            background: linear-gradient(135deg, #f46b45 0%, #eea849 100%);
+        }
+
+        .task-id-section {
+            background-color: #f0f3ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .task-id-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .task-id-display {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .task-id-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #b8c1ec;
+            border-radius: 6px;
+            font-size: 1rem;
+            background-color: white;
+        }
+
+        .result-section {
+            margin-top: 30px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            background-color: #f0f3ff;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-dot.idle {
+            background-color: #aaa;
+        }
+
+        .status-dot.processing {
+            background-color: #f39c12;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-dot.success {
+            background-color: #2ecc71;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .result-container {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .result-table th {
+            background-color: #6a11cb;
+            color: white;
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .result-table td {
+            padding: 16px 15px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .result-table tr:nth-child(even) {
+            background-color: #f9f9ff;
+        }
+
+        .result-table tr:hover {
+            background-color: #f0f3ff;
+        }
+
+        .sentence-index {
+            font-weight: 700;
+            color: #6a11cb;
+            width: 70px;
+        }
+
+        .sentence-text {
+            line-height: 1.5;
+        }
+
+        .sentence-time {
+            white-space: nowrap;
+            width: 160px;
+            color: #555;
+        }
+
+        .sentence-speaker {
+            width: 100px;
+            text-align: center;
+        }
+
+        .speaker-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .speaker-0 {
+            background-color: #e1f5fe;
+            color: #0288d1;
+        }
+
+        .speaker-1 {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #777;
+            font-style: italic;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #6a11cb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .upload-options {
+                flex-direction: column;
+            }
+
+            .upload-option {
+                min-width: 100%;
+            }
+
+            .media-type-selector {
+                flex-direction: column;
+            }
+
+            .result-table th, .result-table td {
+                padding: 12px 8px;
+                font-size: 0.9rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .action-btn {
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>音频/视频转写工具</h1>
+            <p class="subtitle">上传音频/视频文件或输入URL，系统将自动识别语音内容并生成文字转录结果，支持多说话人识别和时间轴标注。</p>
+        </header>
+
+        <main>
+            <section class="upload-section">
+                <h2 class="section-title">转写内容</h2>
+
+                <div class="media-type-selector">
+                    <div class="media-type-btn active" data-type="audio">
+                        音频文件
+                    </div>
+                    <div class="media-type-btn" data-type="video">
+                        视频文件
+                    </div>
+                </div>
+
+                <div class="upload-options">
+                    <div class="upload-option">
+                        <div class="option-title">上传文件</div>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <p>点击选择或拖放文件到这里</p>
+                            <p class="file-info">支持 MP3, WAV, MP4, AVI 等格式</p>
+                            <div id="fileName"></div>
+                        </div>
+                        <input type="file" id="fileInput" accept="audio/*,video/*">
+                    </div>
+
+                    <div class="upload-option">
+                        <div class="option-title">输入 URL</div>
+                        <input type="text" class="url-input" id="urlInput" placeholder="请输入音频/视频的URL地址...">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="action-btn" id="submitTaskBtn">
+                        提交转写任务
+                    </button>
+                    <button class="action-btn secondary" id="queryResultBtn" disabled>
+                        查询结果
+                    </button>
+                    <button class="action-btn download" id="downloadBtn" disabled>
+                        下载结果
+                    </button>
+                </div>
+
+                <div class="task-id-section" id="taskIdSection">
+                    <div class="task-id-label">任务 ID (可用于查询转写结果):</div>
+                    <div class="task-id-display">
+                        <input type="text" class="task-id-input" id="taskIdInput" readonly>
+                        <button class="action-btn secondary" id="copyTaskIdBtn" style="padding: 10px 15px; font-size: 0.9rem;">
+                            复制
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="result-section">
+                <div class="result-header">
+                    <h2 class="section-title">转写结果</h2>
+                    <div class="status-indicator">
+                        <div class="status-dot idle" id="statusDot"></div>
+                        <span id="statusText">准备就绪</span>
+                    </div>
+                </div>
+
+                <div class="loading" id="loadingIndicator">
+                    <div class="loading-spinner"></div>
+                    <p>正在转写中，请稍候...</p>
+                </div>
+
+                <div class="result-container">
+                    <table class="result-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 70px;">序号</th>
+                                <th>内容</th>
+                                <th style="width: 160px;">时间</th>
+                                <th style="width: 100px;">说话人</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultBody">
+                            <tr>
+                                <td colspan="4" class="no-data">转写结果将显示在这里</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>音频/视频转写工具 &copy; 2026 | 支持音频和视频文件转写，返回完整的时间轴和说话人信息</p>
+        </footer>
+    </div>
+
+    <script>
+    // 页面元素
+    const fileInput = document.getElementById('fileInput');
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const fileName = document.getElementById('fileName');
+    const urlInput = document.getElementById('urlInput');
+    const mediaTypeBtns = document.querySelectorAll('.media-type-btn');
+    const submitTaskBtn = document.getElementById('submitTaskBtn');
+    const queryResultBtn = document.getElementById('queryResultBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const resultBody = document.getElementById('resultBody');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const taskIdSection = document.getElementById('taskIdSection');
+    const taskIdInput = document.getElementById('taskIdInput');
+    const copyTaskIdBtn = document.getElementById('copyTaskIdBtn');
+
+    // 当前选中的媒体类型
+    let mediaType = 'audio';
+    // 当前选中的文件
+    let selectedFile = null;
+    // 当前任务ID
+    let currentTaskId = null;
+    // 当前转写结果
+    let currentTranscriptionResult = null;
+
+    // 初始化事件监听
+    function initEventListeners() {
+        // 媒体类型选择
+        mediaTypeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                mediaTypeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                mediaType = btn.dataset.type;
+
+                // 更新文件输入框的accept属性
+                if (mediaType === 'audio') {
+                    fileInput.accept = 'audio/*';
+                } else {
+                    fileInput.accept = 'video/*';
+                }
+            });
+        });
+
+        // 文件上传区域点击事件
+        fileUploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // 文件拖放功能
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.style.borderColor = '#6a11cb';
+            fileUploadArea.style.backgroundColor = '#f0f3ff';
+        });
+
+        fileUploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            fileUploadArea.style.borderColor = '#b8c1ec';
+                fileUploadArea.style.backgroundColor = 'white';
+            });
+
+            fileUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUploadArea.style.borderColor = '#b8c1ec';
+                fileUploadArea.style.backgroundColor = 'white';
+
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelect(e);
+                }
+            });
+
+            // 文件选择事件
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // 提交转写任务按钮点击事件
+            submitTaskBtn.addEventListener('click', submitTranscriptionTask);
+
+            // 查询结果按钮点击事件
+            queryResultBtn.addEventListener('click', queryTranscriptionResult);
+
+            // 下载结果按钮点击事件
+            downloadBtn.addEventListener('click', downloadTranscriptionResult);
+
+            // 复制任务ID按钮点击事件
+            copyTaskIdBtn.addEventListener('click', copyTaskIdToClipboard);
+        }
+
+        // 处理文件选择
+        function handleFileSelect(e) {
+            selectedFile = fileInput.files[0];
+            if (selectedFile) {
+                fileName.innerHTML = `
+                    <div style="margin-top: 10px; padding: 8px; background-color: #f0f3ff; border-radius: 5px;">
+                        ${selectedFile.name} (${formatFileSize(selectedFile.size)})
+                    </div>
+                `;
+            } else {
+                fileName.innerHTML = '';
+            }
+        }
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 提交转写任务
+        async function submitTranscriptionTask() {
+            // 验证输入
+            if (!selectedFile && !urlInput.value.trim()) {
+                alert('请选择文件或输入URL地址');
+                return;
+            }
+
+            // 更新状态
+            updateStatus('processing', '正在提交转写任务...');
+            loadingIndicator.style.display = 'block';
+            submitTaskBtn.disabled = true;
+            queryResultBtn.disabled = true;
+
+            try {
+                let result;
+
+                if (selectedFile) {
+                    // 处理文件上传
+                    result = await handleFileUpload();
+                } else if (urlInput.value.trim()) {
+                    // 处理URL转写
+                    result = await handleUrlTranscription();
+                }
+
+                if (result && result.code === 200) {
+                    currentTaskId = result.data.task_id;
+
+                    // 显示任务ID
+                    taskIdInput.value = currentTaskId;
+                    taskIdSection.style.display = 'block';
+
+                    // 启用查询结果按钮
+                    queryResultBtn.disabled = false;
+
+                    // 更新状态
+                    updateStatus('success', '转写任务已提交');
+                    loadingIndicator.style.display = 'none';
+
+                    // alert(`转写任务已提交，任务ID: ${currentTaskId}`);
+                } else {
+                    throw new Error(result?.message || '转写任务提交失败');
+                }
+            } catch (error) {
+                console.error('转写任务提交出错:', error);
+                alert(`提交转写任务出错: ${error.message}`);
+                updateStatus('idle', '提交失败');
+                loadingIndicator.style.display = 'none';
+            } finally {
+                submitTaskBtn.disabled = false;
+            }
+        }
+
+        // 处理文件上传转写
+        async function handleFileUpload() {
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            const response = await fetch('http://192.168.1.173:504/trans/file', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP错误: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.code === 200) {
+                // 直接显示结果，不需要任务ID
+                currentTranscriptionResult = result.data.sentences;
+                displayTranscriptionResult(currentTranscriptionResult);
+                downloadBtn.disabled = false;
+                taskIdSection.style.display = 'none';
+                return {code: 200, data: {task_id: 'direct_result'}};
+            }
+
+            return result;
+        }
+
+        // 处理URL转写
+        async function handleUrlTranscription() {
+            const formData = new FormData();
+            formData.append('file_url', urlInput.value.trim());
+
+            const response = await fetch('http://192.168.1.173:504/trans/asr', {
+                method: 'POST',
+                body: formData
+            });
+
+            // if (!response.ok) {
+            //     throw new Error(`HTTP错误: ${response.status}`);
+            // }
+
+            return await response.json();
+        }
+
+        // 查询转写结果
+        async function queryTranscriptionResult() {
+            if (!currentTaskId && !taskIdInput.value.trim()) {
+                alert('请输入任务ID');
+                return;
+            }
+
+            const taskIdToQuery = taskIdInput.value.trim() || currentTaskId;
+
+            // 如果是直接结果（文件上传），不需要查询
+            if (taskIdToQuery === 'direct_result') {
+                alert('文件上传转写已完成，无需查询');
+                return;
+            }
+
+            // 更新状态
+            updateStatus('processing', '正在查询转写结果...');
+            loadingIndicator.style.display = 'block';
+            queryResultBtn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('task_id', taskIdToQuery);
+
+                const response = await fetch('http://192.168.1.173:504/trans/result', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP错误: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    // 转写完成
+                    currentTranscriptionResult = result.data.sentences;
+                    updateStatus('success', '转写完成');
+
+                    // 显示结果
+                    displayTranscriptionResult(currentTranscriptionResult);
+
+                    // 启用下载按钮
+                    downloadBtn.disabled = false;
+
+                    // alert('转写结果查询成功');
+                } else if (result.code === 303) {
+                    // 仍在处理中
+                    updateStatus('processing', '转写处理中，请稍后重试');
+                    alert('转写任务仍在处理中，请稍后重试');
+                } else {
+                    throw new Error(`转写失败: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('查询结果出错:', error);
+                alert(`查询结果出错: ${error.message}`);
+                updateStatus('idle', '查询失败');
+            } finally {
+                loadingIndicator.style.display = 'none';
+                queryResultBtn.disabled = false;
+            }
+        }
+
+        // 更新状态指示器
+        function updateStatus(state, message) {
+            statusDot.className = 'status-dot ' + state;
+            statusText.textContent = message;
+        }
+
+        // 显示转写结果
+        function displayTranscriptionResult(sentences) {
+            if (!sentences || sentences.length === 0) {
+                resultBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="no-data">没有找到转写结果</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            sentences.forEach(sentence => {
+                const speakerClass = `speaker-${sentence.spk % 2}`;
+                // 适配不同的字段名：endTime 或 end
+                const endTime = sentence.endTime || sentence.end;
+                html += `
+                    <tr>
+                        <td class="sentence-index">${sentence.sentence_index}</td>
+                        <td class="sentence-text">${sentence.text}</td>
+                        <td class="sentence-time">${sentence.start} - ${endTime}</td>
+                        <td class="sentence-speaker">
+                            <span class="speaker-badge ${speakerClass}">说话人 ${sentence.spk}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            resultBody.innerHTML = html;
+        }
+
+        // 下载转写结果为TXT文件
+        function downloadTranscriptionResult() {
+            if (!currentTranscriptionResult || currentTranscriptionResult.length === 0) {
+                alert('没有可下载的转写结果');
+                return;
+            }
+
+            // 创建TXT文件内容
+            let txtContent = `音频/视频转写结果\n`;
+            txtContent += `任务ID: ${currentTaskId || 'direct_upload'}\n`;
+            txtContent += `生成时间: ${new Date().toLocaleString()}\n`;
+            txtContent += `转写结果条目数: ${currentTranscriptionResult.length}\n\n`;
+
+            currentTranscriptionResult.forEach(sentence => {
+                const endTime = sentence.endTime || sentence.end;
+                txtContent += `[${sentence.start} - ${endTime}] 说话人${sentence.spk}: ${sentence.text}\n`;
+            });
+
+            // 创建下载链接
+            const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `转写结果_${currentTaskId || 'direct_upload'}_${Date.now()}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            alert('转写结果已开始下载');
+        }
+
+        // 复制任务ID到剪贴板
+        function copyTaskIdToClipboard() {
+            if (!taskIdInput.value.trim()) {
+                alert('没有任务ID可复制');
+                return;
+            }
+
+            taskIdInput.select();
+            taskIdInput.setSelectionRange(0, 99999); // 用于移动设备
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('任务ID已复制到剪贴板');
+                } else {
+                    throw new Error('复制失败');
+                }
+            } catch (err) {
+                // 使用现代Clipboard API
+                navigator.clipboard.writeText(taskIdInput.value)
+                    .then(() => {
+                        alert('任务ID已复制到剪贴板');
+                    })
+                    .catch(() => {
+                        alert('复制失败，请手动选择并复制任务ID');
+                    });
+            }
+        }
+
+        // 初始化页面
+        function initPage() {
+            initEventListeners();
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>

@@ -131,7 +131,7 @@ async def trans(file: UploadFile = File(..., description="音频文件")):
                 end = to_date(sentence['end'])
                 text = sentence['text']
                 spk = sentence['spk']
-                sentence_list.append({"sentence_index": i, "text": text, "start": start, "endTime": end, "speaker": spk})
+                sentence_list.append({"sentence_index": i, "text": text, "start": start, "endTime": end, "spk": spk})
                 i += 1
             return response_format(code=200, status="ok", message="success", data={"sentences": sentence_list})
         except Exception as e:
@@ -208,10 +208,10 @@ async def trans_file(file: UploadFile = File(...),
             os.unlink(audio)
 
 @app.post("/trans/asr")
-async def trans_audio_url(audio_url: str = Form(..., description="音频URL")):
+async def trans_audio_url(file_url: str = Form(..., description="音视频URL")):
     task_id = str(uuid.uuid4()).replace("-", "")
     try:
-        task_queue.put({"task_id": task_id, "audio": audio_url})
+        task_queue.put({"task_id": task_id, "audio": file_url})
         return response_format(code=200, status="success", message="上传成功", data={"task_id": task_id})
     except requests.exceptions.RequestException as e:
         print(f"下载音频失败：{e}")
