@@ -343,3 +343,8 @@ modelscope download --model iic/speech_fsmn_vad_zh-cn-16k-common-pytorch
 modelscope download --model iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch
 modelscope download --model iic/speech_campplus_sv_zh-cn_16k-common
 ```
+# 8. 功能更新
+```markdown
+1. 语音识别以及区分说话人角色
+2. 添加网页端
+```
