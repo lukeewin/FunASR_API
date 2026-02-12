@@ -851,14 +851,28 @@
                 return;
             }
 
+            let fullContentText = '';
+            const fullContentElement = document.getElementById('fullContentText');
+            if (fullContentElement && fullContentElement.textContent) {
+                const rawText = fullContentElement.textContent;
+                // 遍历每个字符，遇到句号（。）、问号（？）、英文句点（.）、英文问号（?）时添加换行
+                for (let i = 0; i < rawText.length; i++) {
+                    fullContentText += rawText[i];
+                    if (rawText[i] === '。' || rawText[i] === '？' || rawText[i] === '.' || rawText[i] === '?') {
+                        fullContentText += '\n';
+                    }
+                }
+            }
+
             // 创建TXT文件内容
             let txtContent = `音频/视频转写结果\n`;
             txtContent += `任务ID: ${currentTaskId || 'direct_upload'}\n`;
             txtContent += `生成时间: ${new Date().toLocaleString()}\n`;
             txtContent += `转写结果条目数: ${currentTranscriptionResult.length}\n\n`;
 
-            const fullContentText = document.getElementById('fullContentText');
-            txtContent += `全部内容: ${fullContentText.textContent}\n\n`
+            if (fullContentText) {
+                txtContent += `全部内容:\n${fullContentText}\n`;
+            }
 
             txtContent += `分角色分句内容: \n`
 
