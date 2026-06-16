@@ -692,7 +692,7 @@
             const formData = new FormData();
             formData.append('file', selectedFile);
 
-            const response = await fetch('http://192.168.1.173:505/trans/file', {
+            const response = await fetch('http://localhost:9090/trans/file', {
                 method: 'POST',
                 body: formData
             });
@@ -721,7 +721,7 @@
             const formData = new FormData();
             formData.append('file_url', urlInput.value.trim());
 
-            const response = await fetch('http://192.168.1.173:505/trans/asr', {
+            const response = await fetch('http://localhost:9090/trans/asr', {
                 method: 'POST',
                 body: formData
             });
@@ -757,7 +757,7 @@
                 const formData = new FormData();
                 formData.append('task_id', taskIdToQuery);
 
-                const response = await fetch('http://192.168.1.173:505/trans/result', {
+                const response = await fetch('http://localhost:9090/trans/result', {
                     method: 'POST',
                     body: formData
                 });
